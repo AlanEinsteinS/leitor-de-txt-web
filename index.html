@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leitor de TXT - Dark Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+            background: #0a0a0a;
+            min-height: 100vh;
+            padding: 15px;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #111111;
+            border: 1px solid #222222;
+            overflow: hidden;
+        }
+
+        .header {
+            background: #161616;
+            padding: 25px;
+            border-bottom: 1px solid #222222;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            color: #888888;
+            font-weight: 400;
+        }
+
+        .controls {
+            padding: 25px;
+            background: #141414;
+            border-bottom: 1px solid #222222;
+        }
+
+        .file-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 12px 20px;
+            border: 1px solid #333333;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .file-input-label:hover {
+            background: #222222;
+            border-color: #444444;
+        }
+
+        .file-input-label:active {
+            background: #0f0f0f;
+        }
+
+        .file-name {
+            font-size: 0.9rem;
+            color: #bbbbbb;
+            font-weight: 500;
+        }
+
+        .search-wrapper {
+            position: relative;
+            max-width: 600px;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: 1px solid #333333;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            background: #1a1a1a;
+            color: #ffffff;
+            font-family: inherit;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #555555;
+            background: #1f1f1f;
+        }
+
+        .search-input::placeholder {
+            color: #777777;
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #1f1f1f;
+            border: 1px solid #333333;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            color: #ffffff;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .search-btn:hover {
+            background: #252525;
+            border-color: #444444;
+        }
+
+        .search-stats {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            color: #cccccc;
+            font-weight: 500;
+            display: none;
+            font-size: 0.85rem;
+        }
+
+        .options-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #cccccc;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            font-size: 0.85rem;
+        }
+
+        .checkbox-label:hover {
+            color: #ffffff;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #666666;
+            cursor: pointer;
+        }
+
+        .tools-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tool-btn {
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #ffffff;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            font-family: inherit;
+        }
+
+        .tool-btn:hover {
+            background: #222222;
+            border-color: #444444;
+        }
+
+        .tool-btn:active {
+            background: #0f0f0f;
+        }
+
+        .stats-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .stats-content {
+            background: #111111;
+            padding: 30px;
+            border: 1px solid #333333;
+            max-width: 500px;
+            width: 90%;
+            color: #ffffff;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            background: #1a1a1a;
+            padding: 15px;
+            border: 1px solid #333333;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888888;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .bookmarks-panel {
+            background: #141414;
+            border: 1px solid #333333;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .bookmark-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            margin-bottom: 6px;
+        }
+
+        .bookmark-text {
+            flex: 1;
+            color: #cccccc;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .bookmark-text:hover {
+            color: #ffffff;
+        }
+
+        .bookmark-delete {
+            background: #2a0a0a;
+            border: 1px solid #441111;
+            color: #ff6666;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .bookmark-delete:hover {
+            background: #441111;
+            color: #ff8888;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 2px;
+            background: #333333;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #666666;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 10px 15px;
+            border: 1px solid #333333;
+            z-index: 1001;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .content-area {
+            padding: 25px;
+            min-height: 500px;
+            background: #0f0f0f;
+        }
+
+        .placeholder {
+            text-align: center;
+            color: #666666;
+            font-size: 1rem;
+            padding: 80px 20px;
+        }
+
+        .placeholder-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.4;
+        }
+
+        .text-content {
+            line-height: 1.6;
+            font-size: 1rem;
+            color: #e0e0e0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+            background: #0a0a0a;
+            padding: 20px;
+            border: 1px solid #222222;
+            max-height: 600px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .text-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .text-content::-webkit-scrollbar-track {
+            background: #111111;
+        }
+
+        .text-content::-webkit-scrollbar-thumb {
+            background: #333333;
+        }
+
+        .text-content::-webkit-scrollbar-thumb:hover {
+            background: #444444;
+        }
+
+        .highlight {
+            background: #444444;
+            color: #ffffff;
+            padding: 1px 2px;
+            font-weight: 600;
+        }
+
+        .current-highlight {
+            background: #666666 !important;
+            color: #ffffff !important;
+            border: 1px solid #888888;
+        }
+
+        .navigation {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #ffffff;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            font-family: inherit;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: #222222;
+            border-color: #444444;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .current-match {
+            background: #333333;
+            color: #ffffff;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid #444444;
+        }
+
+        .clear-btn {
+            background: #2a0a0a;
+            color: #ff6666;
+            border: 1px solid #441111;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            font-family: inherit;
+        }
+
+        .clear-btn:hover {
+            background: #441111;
+            color: #ff8888;
+            border-color: #661111;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .file-input-wrapper {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-wrapper {
+                max-width: 100%;
+            }
+            
+            .navigation {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>TXT READER</h1>
+            <p>CARREGUE, LEIA E PESQUISE EM SEUS ARQUIVOS DE TEXTO</p>
+        </div>
+        
+        <div class="controls">
+            <div class="file-input-wrapper">
+                <label for="fileInput" class="file-input-label">
+                    ESCOLHER ARQUIVO
+                </label>
+                <input type="file" id="fileInput" class="file-input" accept=".txt">
+                <span class="file-name" id="fileName">Nenhum arquivo selecionado</span>
+            </div>
+            
+            <div class="search-wrapper">
+                <input type="text" class="search-input" id="searchInput" placeholder="DIGITE PARA PESQUISAR...">
+                <button class="search-btn" id="searchBtn">⌕</button>
+            </div>
+            
+            <div class="options-row">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="caseSensitive"> CASE SENSITIVE
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="wholeWords"> PALAVRAS INTEIRAS
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="useRegex"> REGEX
+                </label>
+            </div>
+            
+            <div class="search-stats" id="searchStats"></div>
+            
+            <div class="navigation" id="navigation" style="display: none;">
+                <button class="nav-btn" id="prevBtn">← ANTERIOR</button>
+                <span class="current-match" id="currentMatch">0 / 0</span>
+                <button class="nav-btn" id="nextBtn">PRÓXIMO →</button>
+                <button class="clear-btn" id="clearBtn">LIMPAR</button>
+            </div>
+            
+            <div class="tools-row">
+                <button class="tool-btn" id="copyBtn" title="Copiar texto">COPIAR</button>
+                <button class="tool-btn" id="wordCountBtn" title="Estatísticas">STATS</button>
+                <button class="tool-btn" id="fontSizeBtn" title="Aumentar fonte">FONTE+</button>
+                <button class="tool-btn" id="exportBtn" title="Exportar">EXPORT</button>
+                <button class="tool-btn" id="bookmarkBtn" title="Marcador">MARK</button>
+            </div>
+        </div>
+        
+        <div class="content-area">
+            <div class="bookmarks-panel" id="bookmarksPanel">
+                <h4 style="color: #ffffff; margin-bottom: 10px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">MARCADORES</h4>
+                <div id="bookmarksList"></div>
+            </div>
+            
+            <div class="placeholder" id="placeholder">
+                <div class="placeholder-icon">▫</div>
+                <p>SELECIONE UM ARQUIVO TXT PARA COMEÇAR</p>
+                <p style="font-size: 0.8rem; margin-top: 8px; opacity: 0.6;">SUPORTA ARQUIVOS .TXT</p>
+            </div>
+            <div class="text-content" id="textContent">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal de Estatísticas -->
+        <div class="stats-modal" id="statsModal">
+            <div class="stats-content">
+                <h3 style="color: #ffffff; margin-bottom: 20px; text-align: center; text-transform: uppercase; letter-spacing: 0.05em;">ESTATÍSTICAS</h3>
+                <div class="stats-grid" id="statsGrid"></div>
+                <button class="tool-btn" style="width: 100%; margin-top: 20px;" onclick="closeStatsModal()">FECHAR</button>
+            </div>
+        </div>
+        
+        <!-- Toast para notificações -->
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script>
+        let fileContent = '';
+        let searchMatches = [];
+        let currentMatchIndex = 0;
+        let fontSize = 1;
+        let bookmarks = [];
+
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchStats = document.getElementById('searchStats');
+        const navigation = document.getElementById('navigation');
+        const placeholder = document.getElementById('placeholder');
+        const textContent = document.getElementById('textContent');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const currentMatch = document.getElementById('currentMatch');
+        const clearBtn = document.getElementById('clearBtn');
+        const caseSensitive = document.getElementById('caseSensitive');
+        const wholeWords = document.getElementById('wholeWords');
+        const useRegex = document.getElementById('useRegex');
+        const copyBtn = document.getElementById('copyBtn');
+        const wordCountBtn = document.getElementById('wordCountBtn');
+        const fontSizeBtn = document.getElementById('fontSizeBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const bookmarkBtn = document.getElementById('bookmarkBtn');
+        const bookmarksPanel = document.getElementById('bookmarksPanel');
+        const progressFill = document.getElementById('progressFill');
+
+        fileInput.addEventListener('change', handleFileSelect);
+        searchInput.addEventListener('input', handleSearch);
+        searchBtn.addEventListener('click', handleSearch);
+        prevBtn.addEventListener('click', goToPreviousMatch);
+        nextBtn.addEventListener('click', goToNextMatch);
+        clearBtn.addEventListener('click', clearSearch);
+        caseSensitive.addEventListener('change', handleSearch);
+        wholeWords.addEventListener('change', handleSearch);
+        useRegex.addEventListener('change', handleSearch);
+        copyBtn.addEventListener('click', copySelectedText);
+        wordCountBtn.addEventListener('click', showStats);
+        fontSizeBtn.addEventListener('click', increaseFontSize);
+        exportBtn.addEventListener('click', exportSearch);
+        bookmarkBtn.addEventListener('click', addBookmark);
+        textContent.addEventListener('scroll', updateProgress);
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'f':
+                        e.preventDefault();
+                        searchInput.focus();
+                        break;
+                    case 'c':
+                        if (window.getSelection().toString()) {
+                            e.preventDefault();
+                            copySelectedText();
+                        }
+                        break;
+                    case '+':
+                    case '=':
+                        e.preventDefault();
+                        increaseFontSize();
+                        break;
+                    case '-':
+                        e.preventDefault();
+                        decreaseFontSize();
+                        break;
+                }
+            }
+            
+            if (searchMatches.length > 0) {
+                switch(e.key) {
+                    case 'F3':
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                            goToPreviousMatch();
+                        } else {
+                            goToNextMatch();
+                        }
+                        break;
+                    case 'Enter':
+                        if (e.target === searchInput) {
+                            if (e.shiftKey) {
+                                goToPreviousMatch();
+                            } else {
+                                goToNextMatch();
+                            }
+                        }
+                        break;
+                }
+            }
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.name.toLowerCase().endsWith('.txt')) {
+                alert('Por favor, selecione apenas arquivos .txt');
+                return;
+            }
+
+            fileName.textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                fileContent = e.target.result;
+                displayContent(fileContent);
+                clearSearch();
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function displayContent(content) {
+            placeholder.style.display = 'none';
+            textContent.style.display = 'block';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.style.fontSize = fontSize + 'rem';
+            contentDiv.textContent = content;
+            
+            textContent.innerHTML = '';
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            progressBar.innerHTML = '<div class="progress-fill" id="progressFill"></div>';
+            textContent.appendChild(progressBar);
+            textContent.appendChild(contentDiv);
+            
+            updateProgress();
+        }
+
+        function copySelectedText() {
+            const selection = window.getSelection();
+            const selectedText = selection.toString();
+            
+            if (selectedText) {
+                navigator.clipboard.writeText(selectedText).then(() => {
+                    showToast('TEXTO COPIADO');
+                }).catch(() => {
+                    showToast('ERRO AO COPIAR');
+                });
+            } else {
+                navigator.clipboard.writeText(fileContent).then(() => {
+                    showToast('TODO TEXTO COPIADO');
+                }).catch(() => {
+                    showToast('ERRO AO COPIAR');
+                });
+            }
+        }
+
+        function showStats() {
+            if (!fileContent) {
+                showToast('CARREGUE UM ARQUIVO PRIMEIRO');
+                return;
+            }
+
+            const words = fileContent.trim().split(/\s+/).filter(word => word.length > 0);
+            const characters = fileContent.length;
+            const charactersNoSpaces = fileContent.replace(/\s/g, '').length;
+            const lines = fileContent.split('\n').length;
+            const paragraphs = fileContent.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
+            
+            const wordCount = {};
+            words.forEach(word => {
+                const cleanWord = word.toLowerCase().replace(/[^\w]/g, '');
+                if (cleanWord.length > 2) {
+                    wordCount[cleanWord] = (wordCount[cleanWord] || 0) + 1;
+                }
+            });
+            
+            const mostCommon = Object.entries(wordCount)
+                .sort(([,a], [,b]) => b - a)[0];
+
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-number">${words.length}</div>
+                    <div class="stat-label">PALAVRAS</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${characters}</div>
+                    <div class="stat-label">CARACTERES</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${charactersNoSpaces}</div>
+                    <div class="stat-label">SEM ESPAÇOS</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${lines}</div>
+                    <div class="stat-label">LINHAS</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${paragraphs}</div>
+                    <div class="stat-label">PARÁGRAFOS</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${Math.round(words.length / 200)}</div>
+                    <div class="stat-label">MIN LEITURA</div>
+                </div>
+            `;
+            
+            if (mostCommon) {
+                statsGrid.innerHTML += `
+                    <div class="stat-item" style="grid-column: 1 / -1;">
+                        <div class="stat-number">"${mostCommon[0]}"</div>
+                        <div class="stat-label">MAIS USADA (${mostCommon[1]}x)</div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('statsModal').style.display = 'flex';
+        }
+
+        function increaseFontSize() {
+            fontSize = Math.min(fontSize + 0.1, 2);
+            updateFontSize();
+            showToast(`FONTE: ${Math.round(fontSize * 100)}%`);
+        }
+
+        function decreaseFontSize() {
+            fontSize = Math.max(fontSize - 0.1, 0.5);
+            updateFontSize();
+            showToast(`FONTE: ${Math.round(fontSize * 100)}%`);
+        }
+
+        function updateFontSize() {
+            const contentDiv = textContent.querySelector('div:last-child');
+            if (contentDiv) {
+                contentDiv.style.fontSize = fontSize + 'rem';
+            }
+        }
+
+        function exportSearch() {
+            if (searchMatches.length === 0) {
+                showToast('FAÇA UMA PESQUISA PRIMEIRO');
+                return;
+            }
+
+            const searchTerm = searchInput.value.trim();
+            let exportData = `RESULTADOS DA PESQUISA: "${searchTerm}"\n`;
+            exportData += `TOTAL: ${searchMatches.length}\n\n`;
+
+            searchMatches.forEach((match, index) => {
+                const start = Math.max(0, match.index - 50);
+                const end = Math.min(fileContent.length, match.index + match[0].length + 50);
+                const context = fileContent.substring(start, end);
+                
+                exportData += `${index + 1}. LINHA ${getLineNumber(match.index)}:\n`;
+                exportData += `"${context.replace(/\n/g, ' ')}"\n\n`;
+            });
+
+            const blob = new Blob([exportData], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pesquisa_${searchTerm}_${new Date().toISOString().slice(0,10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('PESQUISA EXPORTADA');
+        }
+
+        function addBookmark() {
+            if (!fileContent) {
+                showToast('CARREGUE UM ARQUIVO PRIMEIRO');
+                return;
+            }
+
+            const selection = window.getSelection();
+            let text = selection.toString().trim();
+            let position = 0;
+
+            if (text) {
+                const range = selection.getRangeAt(0);
+                const preSelectionRange = document.createRange();
+                preSelectionRange.setStart(textContent, 0);
+                preSelectionRange.setEnd(range.startContainer, range.startOffset);
+                position = preSelectionRange.toString().length;
+            } else {
+                position = Math.round(textContent.scrollTop / textContent.scrollHeight * fileContent.length);
+                const lineStart = fileContent.lastIndexOf('\n', position) + 1;
+                const lineEnd = fileContent.indexOf('\n', position);
+                text = fileContent.substring(lineStart, lineEnd === -1 ? lineStart + 50 : lineEnd).trim();
+            }
+
+            if (text.length > 80) text = text.substring(0, 80) + '...';
+
+            const bookmark = {
+                id: Date.now(),
+                text: text || 'POSIÇÃO ' + Math.round(position / fileContent.length * 100) + '%',
+                position: position
+            };
+
+            bookmarks.push(bookmark);
+            updateBookmarksDisplay();
+            bookmarksPanel.style.display = 'block';
+            showToast('MARCADOR ADICIONADO');
+        }
+
+        function updateBookmarksDisplay() {
+            const bookmarksList = document.getElementById('bookmarksList');
+            bookmarksList.innerHTML = bookmarks.map(bookmark => `
+                <div class="bookmark-item">
+                    <div class="bookmark-text" onclick="goToBookmark(${bookmark.position})">
+                        ${bookmark.text}
+                    </div>
+                    <button class="bookmark-delete" onclick="deleteBookmark(${bookmark.id})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function goToBookmark(position) {
+            const percentage = position / fileContent.length;
+            textContent.scrollTop = textContent.scrollHeight * percentage;
+            showToast('INDO PARA MARCADOR');
+        }
+
+        function deleteBookmark(id) {
+            bookmarks = bookmarks.filter(b => b.id !== id);
+            updateBookmarksDisplay();
+            if (bookmarks.length === 0) {
+                bookmarksPanel.style.display = 'none';
+            }
+            showToast('MARCADOR REMOVIDO');
+        }
+
+        function updateProgress() {
+            const progressBar = document.getElementById('progressFill');
+            if (!progressBar) return;
+            
+            if (textContent.scrollHeight <= textContent.clientHeight) {
+                progressBar.style.width = '100%';
+                return;
+            }
+            
+            const scrollPercent = (textContent.scrollTop / (textContent.scrollHeight - textContent.clientHeight)) * 100;
+            progressBar.style.width = scrollPercent + '%';
+        }
+
+        function getLineNumber(position) {
+            return fileContent.substring(0, position).split('\n').length;
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        function closeStatsModal() {
+            document.getElementById('statsModal').style.display = 'none';
+        }
+
+        function handleSearch() {
+            const searchTerm = searchInput.value.trim();
+            
+            if (!fileContent || !searchTerm) {
+                clearSearch();
+                return;
+            }
+
+            let flags = 'g';
+            if (!caseSensitive.checked) flags += 'i';
+            
+            let pattern = searchTerm;
+            
+            if (!useRegex.checked) {
+                pattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+            
+            if (wholeWords.checked) {
+                pattern = `\\b${pattern}\\b`;
+            }
+            
+            try {
+                const regex = new RegExp(pattern, flags);
+                const matches = [...fileContent.matchAll(regex)];
+                
+                if (matches.length === 0) {
+                    searchStats.style.display = 'block';
+                    searchStats.textContent = `NENHUM RESULTADO PARA "${searchTerm}"`;
+                    navigation.style.display = 'none';
+                    displayContent(fileContent);
+                    return;
+                }
+
+                searchMatches = matches;
+                currentMatchIndex = 0;
+
+                searchStats.style.display = 'block';
+                searchStats.textContent = `${matches.length} RESULTADO(S) PARA "${searchTerm}"`;
+
+                navigation.style.display = 'flex';
+                
+                highlightMatches();
+                updateNavigation();
+            } catch (error) {
+                showToast('ERRO NA REGEX: ' + error.message);
+                searchStats.style.display = 'block';
+                searchStats.textContent = 'ERRO NA PESQUISA';
+            }
+        }
+
+        function highlightMatches() {
+            if (searchMatches.length === 0) return;
+
+            const searchTerm = searchInput.value.trim();
+            let flags = 'g';
+            if (!caseSensitive.checked) flags += 'i';
+            
+            let pattern = searchTerm;
+            
+            if (!useRegex.checked) {
+                pattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+            
+            if (wholeWords.checked) {
+                pattern = `\\b${pattern}\\b`;
+            }
+            
+            const regex = new RegExp(pattern, flags);
+            
+            let highlightedContent = fileContent.replace(regex, (match, offset) => {
+                const isCurrentMatch = searchMatches[currentMatchIndex] && searchMatches[currentMatchIndex].index === offset;
+                const className = isCurrentMatch ? 'highlight current-highlight' : 'highlight';
+                return `<span class="${className}" data-match-index="${searchMatches.findIndex(m => m.index === offset)}">${match}</span>`;
+            });
+
+            const contentDiv = document.createElement('div');
+            contentDiv.style.fontSize = fontSize + 'rem';
+            contentDiv.innerHTML = highlightedContent;
+            
+            textContent.innerHTML = '';
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            progressBar.innerHTML = '<div class="progress-fill" id="progressFill"></div>';
+            textContent.appendChild(progressBar);
+            textContent.appendChild(contentDiv);
+
+            scrollToCurrentMatch();
+        }
+
+        function scrollToCurrentMatch() {
+            const currentHighlight = textContent.querySelector('.current-highlight');
+            if (currentHighlight) {
+                currentHighlight.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }
+        }
+
+        function goToPreviousMatch() {
+            if (searchMatches.length === 0) return;
+            
+            currentMatchIndex = currentMatchIndex > 0 ? currentMatchIndex - 1 : searchMatches.length - 1;
+            highlightMatches();
+            updateNavigation();
+        }
+
+        function goToNextMatch() {
+            if (searchMatches.length === 0) return;
+            
+            currentMatchIndex = currentMatchIndex < searchMatches.length - 1 ? currentMatchIndex + 1 : 0;
+            highlightMatches();
+            updateNavigation();
+        }
+
+        function updateNavigation() {
+            if (searchMatches.length === 0) return;
+            
+            currentMatch.textContent = `${currentMatchIndex + 1} / ${searchMatches.length}`;
+            
+            prevBtn.disabled = false;
+            nextBtn.disabled = false;
+        }
+
+        function clearSearch() {
+            searchInput.value = '';
+            searchMatches = [];
+            currentMatchIndex = 0;
+            searchStats.style.display = 'none';
+            navigation.style.display = 'none';
+            
+            if (fileContent) {
+                displayContent(fileContent);
+            }
+        }
+        window.goToBookmark = goToBookmark;
+        window.deleteBookmark = deleteBookmark;
+        window.closeStatsModal = closeStatsModal;
+    </script>
+</body>
+</html>
