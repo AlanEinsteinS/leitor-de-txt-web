@@ -5,7 +5,6 @@ let fontSize = 1;
 let bookmarks = [];
 let matrixMode = false;
 
-// Elementos DOM
 const fileInput = document.getElementById('fileInput');
 const fileName = document.getElementById('fileName');
 const fileSize = document.getElementById('fileSize');
@@ -31,7 +30,6 @@ const matrixBtn = document.getElementById('matrixBtn');
 const bookmarksPanel = document.getElementById('bookmarksPanel');
 const viewerCommand = document.getElementById('viewerCommand');
 
-// Event Listeners
 fileInput.addEventListener('change', handleFileSelect);
 searchInput.addEventListener('input', handleSearch);
 searchBtn.addEventListener('click', handleSearch);
